@@ -1,8 +1,9 @@
 module Giri::Bud
 
   def self.extended(base)
-    base.singleton_class.attr_accessor :xml_attributes, :with_name_default_for_node, :with_name_default_for_attribute
+    base.singleton_class.attr_accessor :xml_nodes, :xml_attributes, :with_name_default_for_node, :with_name_default_for_attribute
     
+    base.xml_nodes = {}
     base.xml_attributes = []
     # TODO: Set nil for default
     base.with_name_default_for_node = :camelize
@@ -44,6 +45,7 @@ module Giri::Bud
   end
 
   def inherited(base)
+    base.xml_nodes = xml_nodes.dup
     base.xml_attributes = xml_attributes.dup
     base.with_name_default_for_node = with_name_default_for_node
     base.with_name_default_for_attribute = with_name_default_for_attribute
@@ -71,6 +73,15 @@ module Giri::Bud
   end
 
   def xml_node(name, type: nil, collection: nil, where: nil, with_name: nil, &block)
+    type = if block_given?
+      type = build_type(type || self.xml_nodes.dig(name.to_sym, :type) || "Giri::BaseNode")
+      type.spawn(&block)
+    else
+      build_type(type)
+    end
+
+    self.xml_nodes[name.to_sym] = {name: name, type: type, collection: collection}
+
     class_eval do
       define_method(name) do
         var = instance_variable_get("@#{name}")
@@ -90,12 +101,12 @@ module Giri::Bud
           end
 
           if elem
-            type = if block_given? # This block points the args in `xml_node` not method defined dynamically.
-              type = self.class.build_type(type || "Giri::BaseNode")
-              type.spawn(&block)
-            else
-              self.class.build_type(type)
-            end
+            # type = if block_given? # This block points the args in `xml_node` not method defined dynamically.
+            #   type = self.class.build_type(type || "Giri::BaseNode")
+            #   type.spawn(&block)
+            # else
+            #   self.class.build_type(type)
+            # end
             o = if collection
               elem.map{|e| type ? type.new(e) : e}
             else
@@ -134,7 +145,8 @@ module Giri::Bud
     if type.is_a?(Class)
       type
     elsif type.is_a?(String) or type.is_a?(Symbol)
-      type.to_s.constantize
+      # type.to_s.constantize
+      Object.const_get(type.to_s)
     else
       nil
     end

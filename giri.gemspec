@@ -18,4 +18,5 @@ Gem::Specification.new do |s|
   s.required_ruby_version = ">= 2.7"
   s.add_dependency "rake", "~> 13.0"
   s.add_dependency "hashie"
+  s.add_dependency "activesupport"
 end
