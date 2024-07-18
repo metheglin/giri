@@ -36,7 +36,18 @@ module Giri::Bud
 
           attr_name = self.class.build_attribute_name(name, with_name || self.class.with_name_default_for_attribute)
           value = node.attributes[attr_name.to_s]&.value
-          value = (value && type) ? type.new(value) : value
+          value = if value
+            if type.is_a?(Class)
+              type.new(value)
+            elsif type.is_a?(Symbol)
+              "Giri::TextNode#{type.to_s.camelize}".constantize.build_value(value)
+            else
+              value
+            end
+          else
+            value
+          end
+          # value = (value && type) ? type.new(value) : value
 
           [name.to_sym, value]
         end.to_h
@@ -57,15 +68,23 @@ module Giri::Bud
   end
 
   def text_node(name, **args, &block)
-    xml_node(name, type: "Giri::TextNode", **args, &block)
+    xml_node(name, type: "Giri::TextNodeString", **args, &block)
+  end
+
+  def integer_node(name, **args, &block)
+    xml_node(name, type: "Giri::TextNodeInteger", **args, &block)
+  end
+
+  def big_decimal_node(name, **args, &block)
+    xml_node(name, type: "Giri::TextNodeBigDecimal", **args, &block)
   end
 
   def date_time_node(name, **args, &block)
-    xml_node(name, type: "Giri::DateTimeNode", **args, &block)
+    xml_node(name, type: "Giri::TextNodeDateTime", **args, &block)
   end
 
   def duration_node(name, **args, &block)
-    xml_node(name, type: "Giri::DurationNode", **args, &block)
+    xml_node(name, type: "Giri::TextNodeDuration", **args, &block)
   end
 
   def xml_node_collection(name, **args, &block)
@@ -144,9 +163,11 @@ module Giri::Bud
   def build_type(type)
     if type.is_a?(Class)
       type
-    elsif type.is_a?(String) or type.is_a?(Symbol)
+    elsif type.is_a?(String)
       # type.to_s.constantize
       Object.const_get(type.to_s)
+    elsif type.is_a?(Symbol)
+      type
     else
       nil
     end
