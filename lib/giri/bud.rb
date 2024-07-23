@@ -7,7 +7,7 @@ module Giri::Bud
     base.xml_attributes = []
     # TODO: Set nil for default
     base.with_name_default_for_node = :camelize
-    base.with_name_default_for_attribute = :dasherize
+    base.with_name_default_for_attribute = :lower_camelcase
 
     base.class_eval do
       attr_reader :node, :attributes
