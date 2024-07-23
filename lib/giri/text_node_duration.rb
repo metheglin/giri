@@ -4,6 +4,7 @@ class Giri::TextNodeDuration < Giri::TextNodeString
   def components
     @components ||= begin
       _, years, months, days, time_part, hours, minutes, seconds = self.match(/\AP(\d+Y)?(\d+M)?(\d+D)?(T(\d+H)?(\d+M)?(\d+S)?)?\z/).to_a
+      # Example of values "15H" and "15H".to_i will get 15.
       {
         years: years.to_i,
         months: months.to_i,
