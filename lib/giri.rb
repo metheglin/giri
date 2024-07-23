@@ -1,5 +1,7 @@
 require "hashie/mash"
+require "active_support"
 require "active_support/inflector"
+require "active_support/core_ext/integer"
 
 require "giri/version"
 require "giri/bud"
