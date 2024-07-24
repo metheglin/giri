@@ -7,9 +7,8 @@ class Giri::TextNodeDateTime < DelegateClass(DateTime)
     DateTime.parse(str)
   end
 
-  def initialize(node)
-    @node = node
-    @attributes = Hashie::Mash.new(build_attributes)
+  def initialize(*args)
+    initialize_setup(*args)
     super(self.class.build_value(@node.text))
   end
 end

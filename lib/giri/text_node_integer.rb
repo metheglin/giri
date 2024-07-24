@@ -5,9 +5,8 @@ class Giri::TextNodeInteger < DelegateClass(Integer)
     str.to_i
   end
 
-  def initialize(node)
-    @node = node
-    @attributes = Hashie::Mash.new(build_attributes)
+  def initialize(*args)
+    initialize_setup(*args)
     super(self.class.build_value(@node.text))
   end
 end

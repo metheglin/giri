@@ -2,7 +2,7 @@ module Giri::Bud
 
   def self.extended(base)
     base.singleton_class.attr_accessor :xml_nodes, :xml_attributes, :with_name_default_for_node, :with_name_default_for_attribute
-    
+
     base.xml_nodes = {}
     base.xml_attributes = []
     # TODO: Set nil for default
@@ -10,10 +10,20 @@ module Giri::Bud
     base.with_name_default_for_attribute = :lower_camelcase
 
     base.class_eval do
-      attr_reader :node, :attributes
-      def initialize(node)
+      attr_reader :node, :ref_name, :attributes, :parent
+      def initialize(*args)
+        initialize_setup(*args)
+      end
+
+      def initialize_setup(node, ref_name: nil, parent: nil)
         @node = node
+        @ref_name = ref_name
         @attributes = Hashie::Mash.new(build_attributes)
+        @parent = parent
+      end
+
+      def parent_ref_name
+        parent&.ref_name
       end
 
       def find_elements(name)
@@ -51,6 +61,10 @@ module Giri::Bud
 
           [name.to_sym, value]
         end.to_h
+      end
+
+      def inspect
+        "#<#{self.class}:0x#{object_id.to_s(16)} @ref_name=#{@ref_name.inspect} parent_ref_name=#{parent_ref_name.inspect} @attributes=#{@attributes.inspect}>"
       end
     end
   end
@@ -127,9 +141,9 @@ module Giri::Bud
             #   self.class.build_type(type)
             # end
             o = if collection
-              elem.map{|e| type ? type.new(e) : e}
+              elem.map{|e| type ? type.new(e, ref_name: name, parent: self) : e}
             else
-              type ? type.new(elem) : elem
+              type ? type.new(elem, ref_name: name, parent: self) : elem
             end
             instance_variable_set("@#{name}", o)
           end
