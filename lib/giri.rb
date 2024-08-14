@@ -5,6 +5,8 @@ require "active_support/core_ext/integer"
 
 require "giri/version"
 require "giri/bud"
+require "giri/context"
+require "giri/duration"
 require "giri/base_node"
 require "giri/text_node_string"
 require "giri/text_node_integer"

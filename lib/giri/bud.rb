@@ -1,10 +1,11 @@
 module Giri::Bud
 
   def self.extended(base)
-    base.singleton_class.attr_accessor :xml_nodes, :xml_attributes, :with_name_default_for_node, :with_name_default_for_attribute
+    base.singleton_class.attr_accessor :xml_nodes, :xml_attributes, :context_attributes, :with_name_default_for_node, :with_name_default_for_attribute
 
     base.xml_nodes = {}
     base.xml_attributes = []
+    base.context_attributes = []
     # TODO: Set nil for default
     base.with_name_default_for_node = :camelize
     base.with_name_default_for_attribute = :lower_camelcase
@@ -38,6 +39,10 @@ module Giri::Bud
         block.call(node)
       end
 
+      def context
+        @context ||= Giri::Context.new(self)
+      end
+
       def build_attributes
         self.class.xml_attributes.map do |col|
           name = col[:name]
@@ -68,6 +73,7 @@ module Giri::Bud
   def inherited(base)
     base.xml_nodes = xml_nodes.dup
     base.xml_attributes = xml_attributes.dup
+    base.context_attributes = context_attributes.dup
     base.with_name_default_for_node = with_name_default_for_node
     base.with_name_default_for_attribute = with_name_default_for_attribute
     super
@@ -180,6 +186,14 @@ module Giri::Bud
       type
     else
       nil
+    end
+  end
+
+  def context(context_name, &block)
+    self.context_attributes << context_name.to_sym
+
+    class_eval do
+      define_method(context_name, &block)
     end
   end
 end

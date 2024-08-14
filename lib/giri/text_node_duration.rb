@@ -1,24 +1,13 @@
 # https://www.w3.org/TR/xmlschema-2/#duration
-class Giri::TextNodeDuration < Giri::TextNodeString
+class Giri::TextNodeDuration < DelegateClass(Giri::Duration)
+  extend Giri::Bud
 
-  def components
-    @components ||= begin
-      _, years, months, days, time_part, hours, minutes, seconds = self.match(/\AP(\d+Y)?(\d+M)?(\d+D)?(T(\d+H)?(\d+M)?(\d+S)?)?\z/).to_a
-      # Example of values "15H" and "15H".to_i will get 15.
-      {
-        years: years.to_i,
-        months: months.to_i,
-        days: days.to_i,
-        hours: hours.to_i,
-        minutes: minutes.to_i,
-        seconds: seconds.to_i,
-      }
-    end
+  def self.build_value(str)
+    Giri::Duration.new(str)
   end
 
-  def duration_time
-    components.reduce(0) do |acc,(k,v)|
-      acc + v.public_send(k)
-    end
+  def initialize(*args)
+    initialize_setup(*args)
+    super(self.class.build_value(@node.text))
   end
 end
